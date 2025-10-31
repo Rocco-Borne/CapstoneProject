@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Room : MonoBehaviour
 {
+   
     [SerializeField] GameObject topDoor;
     [SerializeField] GameObject bottomDoor;
     [SerializeField] GameObject leftDoor;
@@ -54,4 +55,5 @@ public class Room : MonoBehaviour
         if (!rightDoor.activeSelf) rightWall.SetActive(true);
     }
 }
+
 

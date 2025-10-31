@@ -7,6 +7,7 @@ using UnityEngine;
 public class MapGenerator : MonoBehaviour
 {
     [SerializeField] GameObject roomPrefab;
+    [SerializeField] GameObject bossRoomPrefab;
     [SerializeField] private int maxRooms = 20;
     [SerializeField] private int minRooms = 18;
 
@@ -17,6 +18,7 @@ public class MapGenerator : MonoBehaviour
     int gridSizeY = 15;
 
     private List<GameObject> roomObjects = new List<GameObject>();
+    private List<Room> endrooms = new List<Room>();
     private Queue<Vector2Int> roomQueue = new Queue<Vector2Int>();
 
     private int[,] roomGrid;
@@ -69,6 +71,7 @@ public class MapGenerator : MonoBehaviour
         initialRoom.name = $"Room-{roomCount}";
         initialRoom.GetComponent<Room>().RoomIndex = roomIndex;
         roomObjects.Add(initialRoom);
+
     }
 
     private bool TryGenerateRoom(Vector2Int roomIndex)
@@ -186,7 +189,6 @@ public class MapGenerator : MonoBehaviour
         int gridY = gridIndex.y;
         return new Vector3(roomWidth * (gridX - gridSizeX / 2), roomHeight * (gridY - gridSizeY / 2));
     }
-
     private void OnDrawGizmos()
     {
         Color gizmoColor = new Color(0, 1, 1, 0.05f);

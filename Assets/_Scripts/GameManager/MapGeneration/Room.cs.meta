@@ -3,7 +3,15 @@ guid: 280ac24ab9fc3754a9164f44e7885ace
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - topDoor: {fileID: 2436987338455020019, guid: 4d6913a1b0dc0b2438510119e7eec839, type: 3}
+  - bottomDoor: {fileID: 4335530124828804619, guid: 906b5e4e8cb31494fbe94f1e7cb5fc53, type: 3}
+  - leftDoor: {fileID: 4194056501936082054, guid: 4649e1d83972f3e4b8688583deb6750d, type: 3}
+  - rightDoor: {fileID: 936991516582303861, guid: c4b02bd206cfbd240badf94bbb8aa819, type: 3}
+  - topWall: {instanceID: 0}
+  - bottomWall: {instanceID: 0}
+  - leftWall: {instanceID: 0}
+  - rightWall: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
