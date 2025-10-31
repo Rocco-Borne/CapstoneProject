@@ -2,294 +2,204 @@ using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.EditorTools;
 using UnityEngine;
-
 public class MapGenerator : MonoBehaviour
 {
-    private int[] floorPlan;
+    [SerializeField] GameObject roomPrefab;
+    [SerializeField] private int maxRooms = 20;
+    [SerializeField] private int minRooms = 18;
 
-    private int floorPlanCount;
-    [SerializeField] private int minRooms;
-    [SerializeField] private int maxRooms;
-    private List<int> endRooms;
+    int roomWidth = 18;
+    int roomHeight = 10;
 
-    private int bossRoomIndex;
-    private int HealRoomIndex;
+    int gridSizeX = 15;
+    int gridSizeY = 15;
 
-    public Cell cellPrefab;
-    [SerializeField] private float cellSize;
-    private Queue<int> cellPool;
-    private List<Cell> cellList;
-    private List<int> bigRoomsIndexes;
+    private List<GameObject> roomObjects = new List<GameObject>();
+    private Queue<Vector2Int> roomQueue = new Queue<Vector2Int>();
 
-    [Header("Sprite References")]
-    [SerializeField] private Sprite Boss;
-    [SerializeField] private Sprite HealRoom;
+    private int[,] roomGrid;
+    private int roomCount;
+    private bool generationComplete = false;
 
-    [Header ("Room Variations")]
-    [SerializeField] private Sprite standardRoom;
-    [SerializeField] private Sprite bigRoom;
-    [SerializeField] private Sprite longRoom;
-    [SerializeField] private Sprite highRoom;
-
-    private static readonly List<int[]> roomShapes = new()
+    private void Start()
     {
-        new int[]{-1 },
-        new int[]{1 },
+        roomGrid = new int[gridSizeX, gridSizeY];
+        roomQueue = new Queue<Vector2Int>();
 
-        new int[]{10 },
-        new int[]{-10 },
-
-        new int[] {1,10 },
-        new int[] {1,11 },
-        new int[] {10,11 },
-
-        new int[] {9,10 },
-        new int[] {-1, 9},
-        new int[] {-1,10 },
-
-        new int[] {1, -10 },
-        new int[] {1, -9 },
-        new int[] {-9, -10 },
-
-        new int[] {-1, -10},
-        new int[] {-1, -11 },
-        new int[]{-10,-11 },
-
-        new int[] { 1,10,11 },
-        new int[] {1,-9,-10 },
-        new int[] {-1, 9, 10},
-        new int[] {-1, -10, -11}
-    };
-
-    void Start()
-    {
-
-        cellList = new();
-
-        SetUpFloor();
+        Vector2Int initialRoomIndex = new Vector2Int(gridSizeX / 2, gridSizeY / 2);
+        StartRoomGenerationFromRoom(initialRoomIndex);
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        
-    }
-
-    void SetUpFloor()
-    {
-        floorPlan = new int  [100];
-        floorPlanCount = default;
-        cellPool = new Queue<int>();
-        endRooms = new List<int>();
-        bigRoomsIndexes = new List<int>();
-
-        VisitCell(49);
-
-        GenerateFloor();
-
-    }
-    void GenerateFloor()
-    {
-        while(cellPool.Count > 0 )
+        if (roomQueue.Count > 0 && roomCount < maxRooms && !generationComplete)
         {
-            int index= cellPool.Dequeue();
-            int x= index % 10;
+            Vector2Int roomIndex = roomQueue.Dequeue();
+            int gridX = roomIndex.x;
+            int gridY = roomIndex.y;
 
-            bool created= false;
-            if (x > 1) created |= VisitCell(index - 1);
-            if (x < 9) created |= VisitCell(index + 1);
-            if (index > 20) created |= VisitCell(index - 10);
-            if (index < 70) created |= VisitCell(index + 10);
-
-            if (created == false)
-            {
-                endRooms.Add(index);
-            }
+            TryGenerateRoom(new Vector2Int(gridX - 1, gridY));
+            TryGenerateRoom(new Vector2Int(gridX + 1, gridY));
+            TryGenerateRoom(new Vector2Int(gridX, gridY + 1));
+            TryGenerateRoom(new Vector2Int(gridX, gridY - 1));
         }
-        if (floorPlanCount< minRooms)
+        else if (roomCount < minRooms)
         {
-            SetUpFloor();
-            return;
+            
+            RegenerateRooms();
         }
-        SetUpSpecialRooms();
-    }
-    void SetUpSpecialRooms()
-    {
-        bossRoomIndex= endRooms.Count > 0 ? endRooms[endRooms.Count - 1] : -1;
-        if (bossRoomIndex != -1)
+        else if (!generationComplete)
         {
-            endRooms.RemoveAt(endRooms.Count - 1);
-        }
-
-        HealRoomIndex= RandomEndRoom();
-
-        if (HealRoomIndex ==-1 || bossRoomIndex == -1)
-        {
-            SetUpFloor();
-            return;
-        }
-
-        UpdateRoomVisual();
-    }
-    void UpdateRoomVisual()
-    {
-        foreach (Cell cell in cellList)
-        {
-            if (cell.index == bossRoomIndex)
-            {
-                cell.SetSprite(Boss);
-            }
-            else if (cell.index == HealRoomIndex)
-            {
-                cell.SetSprite(HealRoom);
-            }
+            
+            ActivateWallsForAllRooms();
+            generationComplete = true;
         }
     }
-    int RandomEndRoom()
-    {
-        if (endRooms.Count == 0)
-        {
-            return -1;
-        }
-        int randomRoom= Random.Range(0, endRooms.Count);
-        int roomIndex= endRooms[randomRoom];
 
-        endRooms.RemoveAt(randomRoom);
-        return roomIndex;
-    }
-    private int GetNeighbourCount(int index)
+    private void StartRoomGenerationFromRoom(Vector2Int roomIndex)
     {
-        return floorPlan[index - 10] + floorPlan[index - 1] + floorPlan[index + 10] + floorPlan[index + 1];
+        roomQueue.Enqueue(roomIndex);
+        int x = roomIndex.x;
+        int y = roomIndex.y;
+        roomGrid[x, y] = 1;
+        roomCount++;
+        var initialRoom = Instantiate(roomPrefab, GetPositionFromGridIndex(roomIndex), Quaternion.identity);
+        initialRoom.name = $"Room-{roomCount}";
+        initialRoom.GetComponent<Room>().RoomIndex = roomIndex;
+        roomObjects.Add(initialRoom);
     }
-    private bool VisitCell(int index)
+
+    private bool TryGenerateRoom(Vector2Int roomIndex)
     {
-        if (floorPlan[index] != 0 || GetNeighbourCount(index) > 1 || floorPlanCount > maxRooms || Random.value < 0.5f)
+        int x = roomIndex.x;
+        int y = roomIndex.y;
+
+        if (roomCount >= maxRooms)
+            return false;
+        if (Random.value < 0.5f && roomIndex != Vector2Int.zero)
             return false;
 
-        if (Random.value < 0.3f && index != 45)
-        {
-            foreach (var shape in roomShapes.OrderBy(_ => Random.value))
-            {
-                if (TryPlaceRoom(index, shape))
-                {
-                    return true;
-                }
-            }
-        }
+        if (CountAdjacentRooms(roomIndex) > 1)
+            return false;
 
-        cellPool.Enqueue(index);
-        floorPlan[index] = 1;
-        floorPlanCount++;
+        if (roomGrid[x, y] != 0)
+            return false;
 
-        SpawnRoom(index);
+        if (x >= gridSizeX || y >= gridSizeY || x < 0 || y < 0)
+            return false;
 
-        return true;
-    }
+        roomQueue.Enqueue(roomIndex);
+        roomGrid[x, y] = 1;
+        roomCount++;
 
-    private void SpawnRoom(int index)
-    {
-        int x = index % 10;
-        int y = index / 10;
-        Vector2 position = new Vector2(x * cellSize, -y * cellSize);
+        var newRoom = Instantiate(roomPrefab, GetPositionFromGridIndex(roomIndex), Quaternion.identity);
+        newRoom.GetComponent<Room>().RoomIndex = roomIndex;
+        newRoom.name = $"Room-{roomCount}";
+        roomObjects.Add(newRoom);
 
-        Cell newCell = Instantiate(cellPrefab, position, Quaternion.identity);
-        newCell.value = 1;
-        newCell.index = index;
-        //newCell.SetRoomShape(RoomShape.OneByOne);
-        //newCell.SetRoomType(RoomType.Regular);
-
-        //newCell.cellList.Add(index);
-
-        cellList.Add(newCell);
-    }
-
-    private bool TryPlaceRoom(int origin, int[] offsets)
-    {
-        List<int> currentRoomIndexes = new List<int>() { origin };
-
-        foreach (var offset in offsets)
-        {
-            int currentIndexChecked = origin + offset;
-
-            if (currentIndexChecked - 10 < 0 || currentIndexChecked + 10 >= floorPlan.Length)
-            {
-                return false;
-            }
-
-            if (floorPlan[currentIndexChecked] != 0)
-            {
-                return false;
-            }
-
-            if (currentIndexChecked == origin) continue;
-            if (currentIndexChecked % 10 == 0) continue;
-
-            currentRoomIndexes.Add(currentIndexChecked);
-        }
-
-        if (currentRoomIndexes.Count == 1) return false;
-
-        foreach (int index in currentRoomIndexes)
-        {
-            floorPlan[index] = 1;
-            floorPlanCount++;
-            cellPool.Enqueue(index);
-
-            bigRoomsIndexes.Add(index);
-        }
-
-        SpawnLargeRoom(currentRoomIndexes);
+        OpenDoors(newRoom, x, y);
 
         return true;
     }
 
-    private void SpawnLargeRoom(List<int> largeRoomIndexes)
+    private void RegenerateRooms()
     {
+        roomObjects.ForEach(Destroy);
+        roomObjects.Clear();
+        roomGrid = new int[gridSizeX, gridSizeY];
+        roomQueue.Clear();
+        roomCount = 0;
+        generationComplete = false;
 
-        Cell newCell = null;
-
-        int combinedX = default;
-        int combinedY = default;
-        float offset = cellSize / 2f;
-
-        for (int i = 0; i < largeRoomIndexes.Count; i++)
-        {
-            int x = largeRoomIndexes[i] % 10;
-            int y = largeRoomIndexes[i] / 10;
-            combinedX += x;
-            combinedY += y;
-        }
-
-        if (largeRoomIndexes.Count == 4)
-        {
-            Vector2 position = new Vector2(combinedX / 4 * cellSize + offset, -combinedY / 4 * cellSize - offset);
-
-            newCell = Instantiate(cellPrefab, position, Quaternion.identity);
-            newCell.SetRoomSprite(bigRoom);
-            // newCell.SetRoomShape(RoomShape.TwoByTwo);
-        }
-
-        if (largeRoomIndexes.Count == 2)
-        {
-            if (largeRoomIndexes[0] + 10 == largeRoomIndexes[1] || largeRoomIndexes[0] - 10 == largeRoomIndexes[1])
-            {
-                Vector2 position = new Vector2(combinedX / 2 * cellSize, -combinedY / 2 * cellSize - offset);
-                newCell = Instantiate(cellPrefab, position, Quaternion.identity);
-                newCell.SetRoomSprite(highRoom);
-                // newCell.SetRoomShape(RoomShape.OneByTwo);
-            }
-            else if (largeRoomIndexes[0] + 1 == largeRoomIndexes[1] || largeRoomIndexes[0] - 1 == largeRoomIndexes[1])
-            {
-                Vector2 position = new Vector2(combinedX / 2 * cellSize + offset, -combinedY / 2 * cellSize);
-                newCell = Instantiate(cellPrefab, position, Quaternion.identity);
-                newCell.SetRoomSprite(longRoom);
-                //newCell.SetRoomShape(RoomShape.TwoByOne);
-            }
-        }
-
-        //newCell.cellList = largeRoomIndexes;
-        //newCell.cellList.Sort();
-        cellList.Add(newCell);
+        Vector2Int initialRoomIndex = new Vector2Int(gridSizeX / 2, gridSizeY / 2);
+        StartRoomGenerationFromRoom(initialRoomIndex);
     }
+
+    void OpenDoors(GameObject room, int x, int y)
+    {
+        Room newRoomScript = room.GetComponent<Room>();
+
+        Room leftRoomScript = GetRoomScriptAt(new Vector2Int(x - 1, y));
+        Room rightRoomScript = GetRoomScriptAt(new Vector2Int(x + 1, y));
+        Room topRoomScript = GetRoomScriptAt(new Vector2Int(x, y + 1));
+        Room bottomRoomScript = GetRoomScriptAt(new Vector2Int(x, y - 1));
+
+        if (x > 0 && roomGrid[x - 1, y] != 0)
+        {
+            newRoomScript.OpenDoor(Vector2Int.left);
+            leftRoomScript?.OpenDoor(Vector2Int.right);
+        }
+        if (x < gridSizeX - 1 && roomGrid[x + 1, y] != 0)
+        {
+            newRoomScript.OpenDoor(Vector2Int.right);
+            rightRoomScript?.OpenDoor(Vector2Int.left);
+        }
+        if (y > 0 && roomGrid[x, y - 1] != 0)
+        {
+            newRoomScript.OpenDoor(Vector2Int.down);
+            bottomRoomScript?.OpenDoor(Vector2Int.up);
+        }
+        if (y < gridSizeY - 1 && roomGrid[x, y + 1] != 0)
+        {
+            newRoomScript.OpenDoor(Vector2Int.up);
+            topRoomScript?.OpenDoor(Vector2Int.down);
+        }
+    }
+
+    void ActivateWallsForAllRooms()
+    {
+        // After all doors have been set, activate walls where no doors are present
+        foreach (GameObject roomObject in roomObjects)
+        {
+            Room roomScript = roomObject.GetComponent<Room>();
+            roomScript.ActivateWallsWithoutDoors();
+        }
+    }
+
+    Room GetRoomScriptAt(Vector2Int index)
+    {
+        GameObject roomObject = roomObjects.Find(r => r.GetComponent<Room>().RoomIndex == index);
+        if (roomObject != null)
+            return roomObject.GetComponent<Room>();
+        return null;
+    }
+
+    private int CountAdjacentRooms(Vector2Int roomIndex)
+    {
+        int x = roomIndex.x;
+        int y = roomIndex.y;
+        int count = 0;
+
+        if (x > 0 && roomGrid[x - 1, y] != 0) count++;
+        if (x < gridSizeX - 1 && roomGrid[x + 1, y] != 0) count++;
+        if (y > 0 && roomGrid[x, y - 1] != 0) count++;
+        if (y < gridSizeY - 1 && roomGrid[x, y + 1] != 0) count++;
+
+        return count;
+    }
+
+    private Vector3 GetPositionFromGridIndex(Vector2Int gridIndex)
+    {
+        int gridX = gridIndex.x;
+        int gridY = gridIndex.y;
+        return new Vector3(roomWidth * (gridX - gridSizeX / 2), roomHeight * (gridY - gridSizeY / 2));
+    }
+
+    private void OnDrawGizmos()
+    {
+        Color gizmoColor = new Color(0, 1, 1, 0.05f);
+        Gizmos.color = gizmoColor;
+
+        for (int x = 0; x < gridSizeX; x++)
+        {
+            for (int y = 0; y < gridSizeY; y++)
+            {
+                Vector3 position = GetPositionFromGridIndex(new Vector2Int(x, y));
+                Gizmos.DrawWireCube(position, new Vector3(roomWidth, roomHeight, 1));
+            }
+        }
+    }
+
 }
