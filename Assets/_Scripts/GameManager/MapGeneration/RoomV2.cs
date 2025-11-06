@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public enum RoomType
@@ -22,6 +23,28 @@ public class RoomV2 : MonoBehaviour
 
     public int index;
     public int value;
+    [SerializeField] GameObject bossSpawner;
+    [SerializeField] List<GameObject> enemySpawners;
+
+    [Header("Walls")]
+    [SerializeField] Wall wallTop;
+    [SerializeField] Wall wallBottom;
+    [SerializeField] Wall wallLeft;
+    [SerializeField] Wall wallRight;
+
+    [Header("Doors")]
+    [SerializeField] GameObject doorTop;
+    [SerializeField] GameObject doorBottom;
+    [SerializeField] GameObject doorLeft;
+    [SerializeField] GameObject doorRight;
+
+    [Header("Possible Room Prefabs")]
+    [SerializeField] List<GameObject> regularRooms;
+    [SerializeField] List<GameObject> bossRooms;
+    [SerializeField] List<GameObject> verticalRooms;
+    [SerializeField] List<GameObject> horizontalRooms;
+    [SerializeField] List<GameObject> largeRooms;
+
 
     public GameObject roomT;
 
@@ -42,5 +65,29 @@ public class RoomV2 : MonoBehaviour
         roomT = room;
     }
 
+    public void BossRoom()
+    {
+        if (roomType == RoomType.Boss)
+        {
 
+            bossSpawner = Instantiate(bossSpawner, transform.position, Quaternion.identity);
+
+        }
+    }
+
+    public void startingRoom()
+    {
+        if (index == 0)
+        {
+            for (int i = 0; i < enemySpawners.Count; i++)
+            {
+                enemySpawners[i].SetActive(false);
+            }
+        }
+    }
+
+    public void setDoors()
+    {
+        
+    }
 }
