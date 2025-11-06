@@ -179,7 +179,7 @@ public class MapGeneratorV2 : MonoBehaviour
 
     private bool VisitCell(int index)
     {
-        if (floorPlan[index] != 0 || GetNeighbourCount(index) > 1 || floorPlanCount > maxRooms || Random.value < 0.5f)
+        if (floorPlan[index] != 0 || GetNeighbourCount(index) > 1 || floorPlanCount > maxRooms || Random.value < 0.02f)
             return false;
 
         if (Random.value < 0.3f && index != 45)
@@ -245,79 +245,80 @@ public class MapGeneratorV2 : MonoBehaviour
 
         if (currentRoomIndexes.Count == 1) return false;
 
-        foreach (int index in currentRoomIndexes)
-        {
-            floorPlan[index] = 1;
-            floorPlanCount++;
-            cellQueue.Enqueue(index);
+        //foreach (int index in currentRoomIndexes)
+        //{
+        //    floorPlan[index] = 1;
+        //    floorPlanCount++;
+        //    cellQueue.Enqueue(index);
 
-            bigRoomIndexes.Add(index);
-        }
+        //    bigRoomIndexes.Add(index);
+        //}
 
-        SpawnLargeRoom(currentRoomIndexes);
+        //SpawnLargeRoom(currentRoomIndexes);
 
         return true;
     }
 
-    private void SpawnLargeRoom(List<int> largeRoomIndexes)
-    {
-        RoomV2 newCell = null;
+    //private void SpawnLargeRoom(List<int> largeRoomIndexes)
+    //{
+    //    RoomV2 newCell = null;
 
-        int combinedX = default;
-        int combinedY = default;
-        float offsetX = RoomSizeX / 2f;
-        float offsetY = RoomSizeY / 2f;
+    //    int combinedX = default;
+    //    int combinedY = default;
+    //    float offsetX = RoomSizeX / 2f;
+    //    float offsetY = RoomSizeY / 2f;
 
-        for (int i = 0; i < largeRoomIndexes.Count; i++)
-        {
-            int x = largeRoomIndexes[i] % 10;
-            int y = largeRoomIndexes[i] / 10;
-            combinedX += x;
-            combinedY += y;
-        }
+    //    for (int i = 0; i < largeRoomIndexes.Count; i++)
+    //    {
+    //        int x = largeRoomIndexes[i] % 10;
+    //        int y = largeRoomIndexes[i] / 10;
+    //        combinedX += x;
+    //        combinedY += y;
+    //    }
 
-        if (largeRoomIndexes.Count == 4)
-        {
-            Vector2 position = new Vector2(combinedX / 4 * RoomSizeX + offsetX, -combinedY / 4 * RoomSizeY - offsetY);
+    //    if (largeRoomIndexes.Count == 4)
+    //    {
+    //        Vector2 position = new Vector2(combinedX / 4 * RoomSizeX + offsetX, -combinedY / 4 * RoomSizeY - offsetY);
 
-            newCell.SetRoomShape(RoomShape.TwoByTwo);
-            newCell.SetRoomType(RoomType.Regular);
-            newCell.SetRoom(largeRoom);
+    //        newCell = Instantiate(cellPrefab, position, Quaternion.identity);
 
-            newCell = Instantiate(cellPrefab, position, Quaternion.identity);
-           
+    //        newCell.SetRoomShape(RoomShape.TwoByTwo);
+    //        newCell.SetRoomType(RoomType.Regular);
+    //        newCell.SetRoom(largeRoom);
 
-        }
+    //    }
 
-        if (largeRoomIndexes.Count == 2)
-        {
-            if (largeRoomIndexes[0] + 10 == largeRoomIndexes[1] || largeRoomIndexes[0] - 10 == largeRoomIndexes[1])
-            {
-                newCell.SetRoomType(RoomType.Regular);
-                newCell.SetRoomShape(RoomShape.OneByTwo);
-                newCell.SetRoom(verticalRoom);
-                Vector2 position = new Vector2(combinedX / 2 * RoomSizeX, -combinedY / 2 * RoomSizeY - offsetY);
+    //    if (largeRoomIndexes.Count == 2)
+    //    {
+    //        if (largeRoomIndexes[0] + 10 == largeRoomIndexes[1] || largeRoomIndexes[0] - 10 == largeRoomIndexes[1])
+    //        {
 
-                newCell = Instantiate(cellPrefab, position, Quaternion.identity);
-               
+    //            Vector2 position = new Vector2(combinedX / 2 * RoomSizeX, -combinedY / 2 * RoomSizeY - offsetY);
 
-            }
-            else if (largeRoomIndexes[0] + 1 == largeRoomIndexes[1] || largeRoomIndexes[0] - 1 == largeRoomIndexes[1])
-            {
-                Vector2 position = new Vector2(combinedX / 2 * RoomSizeX + offsetX, -combinedY / 2 * RoomSizeY);
+    //            newCell = Instantiate(cellPrefab, position, Quaternion.identity);
 
-                newCell.SetRoomType(RoomType.Regular);
-                newCell.SetRoomShape(RoomShape.TwoByOne);
-                newCell.SetRoom(horizontalRoom);
+    //            newCell.SetRoomType(RoomType.Regular);
+    //            newCell.SetRoomShape(RoomShape.OneByTwo);
+    //            newCell.SetRoom(verticalRoom);
 
-                newCell = Instantiate(cellPrefab, position, Quaternion.identity);
-         
-            }
-        }
 
-        newCell.roomList = largeRoomIndexes;
-        newCell.roomList.Sort();
-        spawnedCells.Add(newCell);
-    }
+    //        }
+    //        else if (largeRoomIndexes[0] + 1 == largeRoomIndexes[1] || largeRoomIndexes[0] - 1 == largeRoomIndexes[1])
+    //        {
+    //            Vector2 position = new Vector2(combinedX / 2 * RoomSizeX + offsetX, -combinedY / 2 * RoomSizeY);
+
+    //            newCell = Instantiate(cellPrefab, position, Quaternion.identity);
+
+    //            newCell.SetRoomType(RoomType.Regular);
+    //            newCell.SetRoomShape(RoomShape.TwoByOne);
+    //            newCell.SetRoom(horizontalRoom);
+
+    //        }
+    //    }
+
+    //    newCell.roomList = largeRoomIndexes;
+    //    newCell.roomList.Sort();
+    //    spawnedCells.Add(newCell);
+    //}
 
 }
