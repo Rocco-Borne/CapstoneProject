@@ -93,7 +93,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2779886575184897132}
-  - component: {fileID: 1988879556548716642}
+  - component: {fileID: 1222999305757971924}
   m_Layer: 0
   m_Name: 1X1 Room
   m_TagString: Untagged
@@ -118,7 +118,7 @@ Transform:
   - {fileID: 5627577261916236421}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1988879556548716642
+--- !u!114 &1222999305757971924
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,17 +127,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 516089655296682400}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 280ac24ab9fc3754a9164f44e7885ace, type: 3}
+  m_Script: {fileID: 11500000, guid: 97fcf3ae90f8ee24b8d99dca8e3fe920, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  topDoor: {fileID: 2436987338455020019, guid: 4d6913a1b0dc0b2438510119e7eec839, type: 3}
-  bottomDoor: {fileID: 4335530124828804619, guid: 906b5e4e8cb31494fbe94f1e7cb5fc53, type: 3}
-  leftDoor: {fileID: 4194056501936082054, guid: 4649e1d83972f3e4b8688583deb6750d, type: 3}
-  rightDoor: {fileID: 936991516582303861, guid: c4b02bd206cfbd240badf94bbb8aa819, type: 3}
-  topWall: {fileID: 0}
-  bottomWall: {fileID: 0}
-  leftWall: {fileID: 0}
-  rightWall: {fileID: 0}
+  roomType: 0
+  roomShape: 0
+  index: 0
+  value: 0
+  roomT: {fileID: 516089655296682400}
+  roomList: 
 --- !u!1 &2284877894703722370
 GameObject:
   m_ObjectHideFlags: 0

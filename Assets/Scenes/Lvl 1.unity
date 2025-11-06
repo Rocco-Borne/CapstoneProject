@@ -523,6 +523,7 @@ GameObject:
   m_Component:
   - component: {fileID: 751494281}
   - component: {fileID: 751494282}
+  - component: {fileID: 751494283}
   m_Layer: 0
   m_Name: mapGenerator
   m_TagString: Untagged
@@ -561,6 +562,30 @@ MonoBehaviour:
   bossRoomPrefab: {fileID: 8800081295184859483, guid: 6461ca16c46ede9479a79b1b9f0eae61, type: 3}
   maxRooms: 20
   minRooms: 10
+  roomWidth: 18
+  roomHeight: 10
+  gridSizeX: 15
+  gridSizeY: 15
+  roomObjects: []
+  endrooms: []
+  roomCount: 0
+  generationComplete: 0
+--- !u!114 &751494283
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 751494279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1d1c9d000a9e4a4487f56a27b9ca5ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cellPrefab: {fileID: 7299373051376180744, guid: 98e92d6c730d0c7498b30303d3e67ca8, type: 3}
+  largeRoom: {fileID: 1789644705600370628, guid: bc6714c317b048442b66e3726486d890, type: 3}
+  verticalRoom: {fileID: 3671014537514000005, guid: 6db1790037881fe429edb38de57387c8, type: 3}
+  horizontalRoom: {fileID: 1687888128126781895, guid: 28925cc121fd02b4ba52f209cbcd68ff, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
